@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 import bcrypt
 from pydantic import BaseModel
@@ -100,3 +100,36 @@ def seed_database(db: Session = Depends(get_db)):
         
     db.commit()
     return {"message": "Dữ liệu mẫu đã được thêm thành công vào Database!"}
+
+class UpdateSessionRequest(BaseModel):
+    lat: float
+    lon: float
+
+@router.post("/auth/update_session")
+def update_session(request: UpdateSessionRequest, raw_request: Request, db: Session = Depends(get_db)):
+    """
+    Cập nhật tọa độ và IP của lớp học bằng vị trí hiện tại của người dùng.
+    """
+    session = db.query(ClassSession).filter(ClassSession.id == '2441a18c-3965-4f32-bb9f-6821d3f9e9ba').first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Không tìm thấy session mẫu.")
+
+    # Lấy IP thực
+    forwarded_for = raw_request.headers.get("x-forwarded-for")
+    if forwarded_for:
+        client_ip = forwarded_for.split(",")[0].strip()
+    else:
+        client_ip = raw_request.client.host
+
+    # Cập nhật
+    session.base_lat = request.lat
+    session.base_lon = request.lon
+    session.base_bssid = client_ip
+    db.commit()
+
+    return {
+        "message": "Đã cập nhật tọa độ và mạng WiFi chuẩn thành công!",
+        "new_lat": request.lat,
+        "new_lon": request.lon,
+        "new_ip": client_ip
+    }

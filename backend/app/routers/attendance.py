@@ -64,7 +64,14 @@ def process_attendance(request: AttendanceRequest, raw_request: Request, db: Ses
             is_valid_location = True
 
     is_valid_wifi = False
-    client_ip = raw_request.client.host
+    
+    # Lấy IP thực của client khi chạy qua proxy (Render/Nginx)
+    forwarded_for = raw_request.headers.get("x-forwarded-for")
+    if forwarded_for:
+        client_ip = forwarded_for.split(",")[0].strip()
+    else:
+        client_ip = raw_request.client.host
+
     if payload.bssid and payload.bssid.upper() == session.base_bssid.upper():
         is_valid_wifi = True
     elif not payload.bssid and client_ip == session.base_bssid:

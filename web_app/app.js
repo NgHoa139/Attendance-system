@@ -125,6 +125,49 @@ btnAttend.addEventListener('click', async () => {
         updateStatus('error', 'Lỗi hệ thống', error.message);
     } finally {
         btnAttend.disabled = false;
-        btnAttend.querySelector('span').innerText = 'THỬ LẠI';
+        btnAttend.querySelector('span').innerText = 'THỰC HIỆN ĐIỂM DANH';
     }
 });
+
+// Hàm Dev: Cập nhật Tọa độ và IP hiện tại thành mặc định của trường
+window.updateSessionToCurrent = function() {
+    if (!navigator.geolocation) {
+        alert("Trình duyệt không hỗ trợ GPS.");
+        return;
+    }
+    
+    const btn = event.target;
+    btn.innerText = "Đang lấy tọa độ...";
+    
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/auth/update_session`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        lat: position.coords.latitude,
+                        lon: position.coords.longitude
+                    })
+                });
+                
+                const data = await res.json();
+                if (res.ok) {
+                    alert(`Thành công! Tọa độ (${data.new_lat}, ${data.new_lon}) và IP (${data.new_ip}) của bạn đã được lưu làm mặc định của lớp học.`);
+                    btn.innerText = "[DEV] Thiết lập tọa độ & WiFi này làm Mặc Định";
+                } else {
+                    alert("Lỗi: " + JSON.stringify(data));
+                    btn.innerText = "Lỗi, thử lại!";
+                }
+            } catch (err) {
+                alert("Không kết nối được server.");
+                btn.innerText = "[DEV] Thiết lập tọa độ & WiFi này làm Mặc Định";
+            }
+        },
+        (error) => {
+            alert("Lỗi lấy GPS: " + error.message);
+            btn.innerText = "[DEV] Thiết lập tọa độ & WiFi này làm Mặc Định";
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+};
