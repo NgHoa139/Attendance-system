@@ -10,7 +10,7 @@ if (!storedUserInfo) {
 const USER_INFO = storedUserInfo ? JSON.parse(storedUserInfo) : {};
 
 // Cấu hình URL Backend
-const API_BASE_URL = "http://localhost:8000/api/v1";
+const API_BASE_URL = "https://attendance-system-87zs.onrender.com/api/v1";
 
 // Cập nhật giao diện
 document.getElementById('studentCodeDisplay').innerText = USER_INFO.studentCode || 'N/A';

@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8000/api/v1";
+const API_BASE_URL = "https://attendance-system-87zs.onrender.com/api/v1";
 
 const loginForm = document.getElementById('loginForm');
 const btnLogin = document.getElementById('btnLogin');
