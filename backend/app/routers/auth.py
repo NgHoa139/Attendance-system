@@ -4,7 +4,7 @@ import bcrypt
 from pydantic import BaseModel
 
 from ..database import get_db
-from ..models import User
+from ..models import User, Session as ClassSession
 
 router = APIRouter()
 
@@ -63,3 +63,40 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         device_uuid=user.device_uuid,
         session_id=session_id
     )
+
+@router.get("/auth/seed")
+def seed_database(db: Session = Depends(get_db)):
+    import bcrypt
+    from datetime import datetime, timedelta
+    
+    # 1. Thêm/Cập nhật User
+    hashed_pwd = bcrypt.hashpw("123456".encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    user = db.query(User).filter(User.student_code == 'SE123456').first()
+    if not user:
+        user = User(
+            id='f9e0eb9b-0000-4000-8000-000000000000',
+            student_code='SE123456',
+            device_uuid='WEB-BROWSER-UUID-12345',
+            full_name='Nguyễn Văn Test',
+            hashed_password=hashed_pwd
+        )
+        db.add(user)
+    else:
+        user.hashed_password = hashed_pwd
+        
+    # 2. Thêm Session
+    session = db.query(ClassSession).filter(ClassSession.id == '2441a18c-3965-4f32-bb9f-6821d3f9e9ba').first()
+    if not session:
+        session = ClassSession(
+            id='2441a18c-3965-4f32-bb9f-6821d3f9e9ba',
+            name='Lớp Nhập môn Lập trình',
+            start_time=datetime.now() - timedelta(hours=1),
+            end_time=datetime.now() + timedelta(hours=1),
+            base_lat=21.013,
+            base_lon=105.526,
+            base_bssid='127.0.0.1'
+        )
+        db.add(session)
+        
+    db.commit()
+    return {"message": "Dữ liệu mẫu đã được thêm thành công vào Database!"}

@@ -2,13 +2,23 @@ import psycopg2
 import bcrypt
 from datetime import datetime, timedelta
 
-conn = psycopg2.connect(
-    host="localhost",
-    port=5432,
-    database="attendance_db",
-    user="postgres",
-    password="hoa13092005"
-)
+import os
+
+print("Starting insert_dummy.py...")
+
+# Connect to database (Neon if DATABASE_URL is set, else localhost)
+db_url = os.getenv("DATABASE_URL")
+print(f"Using DATABASE_URL: {'Yes' if db_url else 'No (using localhost)'}")
+if db_url:
+    conn = psycopg2.connect(db_url)
+else:
+    conn = psycopg2.connect(
+        host="localhost",
+        port=5432,
+        database="attendance_db",
+        user="postgres",
+        password="hoa13092005"
+    )
 cursor = conn.cursor()
 
 # Hash mật khẩu mặc định cho sinh viên test
