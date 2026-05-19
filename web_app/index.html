@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Điểm Danh Web - ĐH FPT</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- CryptoJS (for AES & HMAC) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-animation">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+    
+    <div class="glass-container">
+        <header>
+            <div class="logo-circle">
+                <span class="logo-text">FPT</span>
+            </div>
+            <h1>Hệ thống Điểm danh</h1>
+            <p>Sinh viên: <strong id="studentCodeDisplay">Đang tải...</strong></p>
+            <div style="margin-top:12px; display: flex; gap: 8px; justify-content: center;">
+                <button onclick="window.location.href='dashboard.html'" style="padding:7px 18px;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.4);border-radius:20px;color:#c4b5fd;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:0.5px;transition:background 0.2s;" onmouseover="this.style.background='rgba(108,99,255,0.3)'" onmouseout="this.style.background='rgba(108,99,255,0.15)'">📊 Bảng Điểm Danh</button>
+                <button id="btnLogout" onclick="logout()" style="padding:7px 18px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);border-radius:20px;color:#fca5a5;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:0.5px;transition:background 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.3)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">🚪 Đăng Xuất</button>
+            </div>
+        </header>
+        
+        <main>
+            <div class="status-card" id="statusCard">
+                <div class="icon-pulse">
+                    <span id="statusIcon">📍</span>
+                </div>
+                <h3 id="statusMessage">Sẵn sàng điểm danh</h3>
+                <p id="subStatusMessage">Hệ thống sẽ lấy tọa độ và IP mạng</p>
+            </div>
+            
+            <button class="btn-primary" id="btnAttend">
+                <span>THỰC HIỆN ĐIỂM DANH</span>
+                <div class="btn-glow"></div>
+            </button>
+        </main>
+        
+        <footer>
+            <p>Protected by AES-256 & HMAC-SHA256</p>
+        </footer>
+    </div>
+
+    <!-- Tải các script logic -->
+    <script src="crypto.js?v=2"></script>
+    <script src="app.js?v=2"></script>
+    <script>
+        function logout() {
+            localStorage.removeItem('userInfo');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

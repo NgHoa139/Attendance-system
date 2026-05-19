@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Sử Điểm Danh - ĐH FPT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --primary: #6c63ff;
+            --primary-dark: #4c46b6;
+            --primary-glow: rgba(108, 99, 255, 0.4);
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --text-main: #f0f0ff;
+            --text-sub: #a8a8c0;
+            --glass-bg: rgba(255, 255, 255, 0.07);
+            --glass-border: rgba(255, 255, 255, 0.15);
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0f0e1a;
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .background-animation { position: fixed; inset: 0; z-index: 0; }
+        .shape { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3; animation: float 10s ease-in-out infinite alternate; }
+        .shape-1 { width: 420px; height: 420px; background: radial-gradient(circle, #6c63ff, #3b82f6); top: -120px; left: -120px; }
+        .shape-2 { width: 350px; height: 350px; background: radial-gradient(circle, #a855f7, #ec4899); bottom: -100px; right: -80px; animation-delay: -4s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, 40px) scale(1.08); }
+        }
+
+        /* Dashboard Container */
+        .dashboard-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 800px;
+            animation: fadeSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .btn-back {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            padding: 10px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s, transform 0.15s;
+            backdrop-filter: blur(10px);
+        }
+        .btn-back:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-2px); }
+
+        .user-info { text-align: right; }
+        .user-info h2 { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, #fff, #c4b5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .user-info p { font-size: 14px; color: var(--text-sub); }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            text-align: center;
+        }
+        .stat-card h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-sub); margin-bottom: 8px; }
+        .stat-card .value { font-size: 32px; font-weight: 700; color: #fff; }
+        .stat-card.success .value { color: var(--success); text-shadow: 0 0 16px rgba(34, 197, 94, 0.4); }
+        .stat-card.warning .value { color: var(--warning); text-shadow: 0 0 16px rgba(245, 158, 11, 0.4); }
+
+        /* Table Card */
+        .table-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            overflow: hidden;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px 24px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-sub);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        td { padding: 16px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 15px; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255, 255, 255, 0.03); }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .badge.on-time { background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .badge.late { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge.failed { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        .loading-text { text-align: center; padding: 40px; color: var(--text-sub); }
+        
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-sub); }
+        .empty-state span { font-size: 40px; display: block; margin-bottom: 16px; opacity: 0.5; }
+    </style>
+</head>
+<body>
+    <div class="background-animation">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="header-actions">
+            <a href="index.html" class="btn-back">← Quay lại</a>
+            <div class="user-info">
+                <h2 id="userName">Đang tải...</h2>
+                <p id="userCode">-</p>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <h3>Tổng số buổi</h3>
+                <div class="value" id="totalCount">0</div>
+            </div>
+            <div class="stat-card success">
+                <h3>Đúng giờ</h3>
+                <div class="value" id="onTimeCount">0</div>
+            </div>
+            <div class="stat-card warning">
+                <h3>Đi muộn</h3>
+                <div class="value" id="lateCount">0</div>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Giờ điểm danh</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody id="recordsTableBody">
+                    <tr><td colspan="3" class="loading-text">⏳ Đang tải dữ liệu...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = "http://localhost:8000/api/v1";
+        
+        // 1. Kiểm tra đăng nhập
+        const storedUserInfo = localStorage.getItem('userInfo');
+        if (!storedUserInfo) {
+            window.location.href = 'login.html';
+        }
+        const USER_INFO = JSON.parse(storedUserInfo);
+
+        // 2. Cập nhật UI
+        document.getElementById('userName').innerText = USER_INFO.fullName || USER_INFO.studentCode;
+        document.getElementById('userCode').innerText = USER_INFO.studentCode;
+
+        // 3. Fetch dữ liệu
+        async function fetchRecords() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/records?student_code=${USER_INFO.studentCode}`);
+                if (!res.ok) throw new Error("Failed to fetch records");
+                const data = await res.json();
+                renderTable(data);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('recordsTableBody').innerHTML = `
+                    <tr><td colspan="3" class="loading-text" style="color:#fca5a5;">❌ Lỗi khi tải dữ liệu!</td></tr>
+                `;
+            }
+        }
+
+        // 4. Render bảng
+        function renderTable(records) {
+            const tbody = document.getElementById('recordsTableBody');
+            
+            if (records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3">
+                    <div class="empty-state">
+                        <span>📝</span>
+                        Chưa có dữ liệu điểm danh nào.
+                    </div>
+                </td></tr>`;
+                return;
+            }
+
+            let html = '';
+            let onTime = 0;
+            let late = 0;
+
+            records.forEach(record => {
+                let badgeClass = '';
+                let statusText = '';
+                let icon = '';
+
+                if (record.status === 'FAILED' || record.status === 'SPOOFED' || record.status === 'INVALID_DEVICE') {
+                    badgeClass = 'failed';
+                    statusText = 'Thất bại';
+                    icon = '❌';
+                } else if (record.is_late || record.status === 'LATE') {
+                    badgeClass = 'late';
+                    statusText = 'Đi muộn';
+                    icon = '🕐';
+                    late++;
+                } else {
+                    badgeClass = 'on-time';
+                    statusText = 'Đúng giờ';
+                    icon = '✅';
+                    onTime++;
+                }
+
+                // Format time: HH:MM:SS
+                let timeStr = '-';
+                if (record.check_in_time) {
+                    const d = new Date(record.check_in_time);
+                    timeStr = d.toLocaleTimeString('vi-VN');
+                }
+
+                html += `
+                    <tr>
+                        <td><strong>${record.date}</strong></td>
+                        <td>${timeStr}</td>
+                        <td><span class="badge ${badgeClass}">${icon} ${statusText}</span></td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+
+            // Cập nhật thống kê
+            document.getElementById('totalCount').innerText = records.length;
+            document.getElementById('onTimeCount').innerText = onTime;
+            document.getElementById('lateCount').innerText = late;
+        }
+
+        fetchRecords();
+    </script>
+</body>
+</html>
