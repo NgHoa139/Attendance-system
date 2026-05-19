@@ -48,9 +48,10 @@ def process_attendance(request: AttendanceRequest, raw_request: Request, db: Ses
         raise HTTPException(status_code=404, detail="Session not found")
 
     # Check Time
-    from datetime import datetime, timezone
-    # Convert payload timestamp string or use datetime.now()
-    now = datetime.now()
+    # Chuyển đổi sang múi giờ Việt Nam (UTC+7)
+    from datetime import datetime, timezone, timedelta
+    vn_tz = timezone(timedelta(hours=7))
+    now = datetime.now(vn_tz)
     
     is_late = False
     if now.hour >= 10 and now.minute >= 0:

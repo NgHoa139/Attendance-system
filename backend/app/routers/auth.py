@@ -133,3 +133,10 @@ def update_session(request: UpdateSessionRequest, raw_request: Request, db: Sess
         "new_lon": request.lon,
         "new_ip": client_ip
     }
+
+@router.get("/auth/clear_logs")
+def clear_logs(db: Session = Depends(get_db)):
+    from ..models import AttendanceLog
+    db.query(AttendanceLog).delete()
+    db.commit()
+    return {"message": "Đã xóa toàn bộ lịch sử điểm danh rác!"}
