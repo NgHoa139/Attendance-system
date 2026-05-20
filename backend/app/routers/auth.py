@@ -27,8 +27,9 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     Xác thực sinh viên bằng mã sinh viên và mật khẩu.
     Trả về thông tin cần thiết để frontend lưu vào localStorage.
     """
-    # 1. Tìm user theo mã sinh viên
-    user = db.query(User).filter(User.student_code == request.student_code).first()
+    # 1. Tìm user theo mã sinh viên (Không phân biệt hoa/thường)
+    student_code_upper = request.student_code.strip().upper()
+    user = db.query(User).filter(User.student_code == student_code_upper).first()
 
     # 2. Kiểm tra user tồn tại và mật khẩu hợp lệ
     if not user or not user.hashed_password:

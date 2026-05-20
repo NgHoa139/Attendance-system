@@ -95,17 +95,27 @@ def process_attendance(request: AttendanceRequest, raw_request: Request, db: Ses
         AttendanceLog.status.in_(["ON_TIME", "LATE"])
     ).order_by(AttendanceLog.timestamp.asc()).first()
 
+    date_str = now.strftime("%d/%m/%Y")
+
     if existing_log:
         # Đã check-in rồi -> Cập nhật check-out
         existing_log.check_out_time = now
         db.commit()
+        
+        hours = 0.0
+        if existing_log.check_in_time:
+            from datetime import datetime as dt
+            # Dùng dt.utcnow() naive để tính khoảng thời gian với check_in_time (cũng là naive UTC)
+            delta = dt.utcnow() - existing_log.check_in_time
+            hours = round(delta.total_seconds() / 3600.0, 2)
+            
         logger.info(f"Check-out success for {payload.student_code} at {now}")
-        return {"status": "success", "message": "Check-out thành công!"}
+        return {"status": "success", "message": f"Ngày {date_str} bạn đã làm {hours} giờ."}
     else:
         # Chưa check-in -> Tạo mới
         log_attempt(db, payload, status_str, user.id, check_in_time=now, is_late=is_late)
         logger.info(f"Check-in success for {payload.student_code}. Late: {is_late}")
-        return {"status": "success", "message": f"Check-in thành công ({'Muộn' if is_late else 'Đúng giờ'})"}
+        return {"status": "success", "message": f"Bạn đã check-in ngày {date_str} thành công."}
 
 def log_attempt(db: Session, payload: AttendancePayload, status: str, user_id=None, check_in_time=None, is_late=False):
     new_log = AttendanceLog(
