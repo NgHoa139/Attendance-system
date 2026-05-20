@@ -143,8 +143,9 @@ def clear_logs(db: Session = Depends(get_db)):
 
 @router.get("/auth/migrate_checkout")
 def migrate_checkout(db: Session = Depends(get_db)):
+    from sqlalchemy import text
     try:
-        db.execute("ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS check_out_time TIMESTAMP;")
+        db.execute(text("ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS check_out_time TIMESTAMP;"))
         db.commit()
         return {"message": "Đã thêm cột check_out_time thành công!"}
     except Exception as e:
