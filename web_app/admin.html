@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Điểm Danh Web</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { padding: 40px 20px; }
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .header h1 { color: #fff; font-size: 32px; }
+        
+        .tabs { display: flex; gap: 16px; margin-bottom: 24px; }
+        .tab {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-sub);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .tab.active { background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #fff; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .table-card { margin-top: 0; }
+        th { font-size: 14px; }
+        td { font-size: 15px; }
+    </style>
+</head>
+<body>
+    <div class="background-animation">
+        <div class="shape shape-1" style="background: radial-gradient(circle, rgba(239,68,68,0.4) 0%, rgba(185,28,28,0) 70%);"></div>
+        <div class="shape shape-2"></div>
+    </div>
+
+    <div class="admin-container">
+        <div class="header">
+            <div>
+                <h1>🛡️ Hệ thống Quản trị (Admin)</h1>
+                <p style="color: var(--text-sub); margin-top: 8px;">Kiểm soát lịch sử điểm danh và giờ làm việc</p>
+            </div>
+            <button onclick="logoutAdmin()" style="padding:10px 20px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);border-radius:20px;color:#fca5a5;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.3)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">Đăng Xuất</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('logs')">📋 Lịch sử Điểm danh (Real-time)</button>
+            <button class="tab" onclick="switchTab('users')">👥 Thống kê Nhân viên</button>
+        </div>
+
+        <!-- Logs Tab -->
+        <div id="logs" class="tab-content active">
+            <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã SV</th>
+                            <th>Họ Tên</th>
+                            <th>Ngày</th>
+                            <th>Giờ Check-in</th>
+                            <th>Giờ Check-out</th>
+                            <th>Số giờ</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTableBody">
+                        <tr><td colspan="7" style="text-align:center; padding: 40px; color: var(--text-sub);">⏳ Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users" class="tab-content">
+            <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã SV</th>
+                            <th>Họ Tên</th>
+                            <th>Tổng số buổi</th>
+                            <th>Tổng giờ làm</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr><td colspan="4" style="text-align:center; padding: 40px; color: var(--text-sub);">⏳ Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=3"></script>
+    <script src="admin.js?v=1"></script>
+</body>
+</html>

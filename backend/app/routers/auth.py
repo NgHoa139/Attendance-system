@@ -151,3 +151,20 @@ def migrate_checkout(db: Session = Depends(get_db)):
         return {"message": "Đã thêm cột check_out_time thành công!"}
     except Exception as e:
         return {"error": str(e)}
+
+@router.get("/auth/seed_admin")
+def seed_admin(db: Session = Depends(get_db)):
+    import bcrypt
+    from ..models import AdminUser
+    
+    admin = db.query(AdminUser).filter(AdminUser.username == "admin").first()
+    hashed_pwd = bcrypt.hashpw("@admin321".encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
+    if not admin:
+        admin = AdminUser(username="admin", hashed_password=hashed_pwd)
+        db.add(admin)
+    else:
+        admin.hashed_password = hashed_pwd
+        
+    db.commit()
+    return {"message": "Đã tạo tài khoản admin thành công (Tên đăng nhập: admin, Mật khẩu: @admin321)"}

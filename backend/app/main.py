@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 import os
 from .database import engine, Base
-from .routers import attendance, auth, records
+from .routers import attendance, auth, records, admin
 
 
 # Create DB tables
@@ -36,6 +36,7 @@ logger.addHandler(file_handler)
 app.include_router(attendance.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(records.router, prefix="/api/v1")
+app.include_router(admin.router, prefix="/api/v1")
 
 
 @app.get("/")
