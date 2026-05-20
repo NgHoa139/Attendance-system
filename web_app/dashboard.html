@@ -145,6 +145,50 @@
         
         .empty-state { text-align: center; padding: 60px 20px; color: var(--text-sub); }
         .empty-state span { font-size: 40px; display: block; margin-bottom: 16px; opacity: 0.5; }
+
+        /* GitHub Heatmap */
+        .heatmap-container {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 32px;
+            backdrop-filter: blur(20px);
+        }
+        .heatmap-container h3 { font-size: 16px; margin-bottom: 16px; color: #fff; }
+        .heatmap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .heat-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            position: relative;
+            cursor: pointer;
+        }
+        .heat-box[data-level="1"] { background: #0e4429; }
+        .heat-box[data-level="2"] { background: #006d32; }
+        .heat-box[data-level="3"] { background: #26a641; }
+        .heat-box[data-level="4"] { background: #39d353; }
+        
+        .heat-box:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #000;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            margin-bottom: 4px;
+            z-index: 100;
+        }
     </style>
 </head>
 <body>
@@ -177,12 +221,30 @@
             </div>
         </div>
 
+        <div class="heatmap-container">
+            <h3>Hoạt động điểm danh (Số giờ làm)</h3>
+            <div class="heatmap" id="heatmapGrid">
+                <span class="loading-text" style="padding:0">⏳ Đang tải...</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin-top:16px; font-size:12px; color:var(--text-sub);">
+                <span>Ít</span>
+                <div class="heat-box"></div>
+                <div class="heat-box" data-level="1"></div>
+                <div class="heat-box" data-level="2"></div>
+                <div class="heat-box" data-level="3"></div>
+                <div class="heat-box" data-level="4"></div>
+                <span>Nhiều (≥6h)</span>
+            </div>
+        </div>
+
         <div class="table-card">
             <table>
                 <thead>
                     <tr>
                         <th>Ngày</th>
-                        <th>Giờ điểm danh</th>
+                        <th>Giờ Check-in</th>
+                        <th>Giờ Check-out</th>
+                        <th>Số giờ</th>
                         <th>Trạng thái</th>
                     </tr>
                 </thead>
@@ -227,12 +289,13 @@
             const tbody = document.getElementById('recordsTableBody');
             
             if (records.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3">
+                tbody.innerHTML = `<tr><td colspan="5">
                     <div class="empty-state">
                         <span>📝</span>
                         Chưa có dữ liệu điểm danh nào.
                     </div>
                 </td></tr>`;
+                document.getElementById('heatmapGrid').innerHTML = '';
                 return;
             }
 
@@ -262,16 +325,26 @@
                 }
 
                 // Format time: HH:MM:SS
-                let timeStr = '-';
+                let inTimeStr = '-';
                 if (record.check_in_time) {
-                    const d = new Date(record.check_in_time);
-                    timeStr = d.toLocaleTimeString('vi-VN');
+                    const d = new Date(record.check_in_time + 'Z');
+                    inTimeStr = d.toLocaleTimeString('vi-VN');
                 }
+                
+                let outTimeStr = '-';
+                if (record.check_out_time) {
+                    const d = new Date(record.check_out_time + 'Z');
+                    outTimeStr = d.toLocaleTimeString('vi-VN');
+                }
+                
+                let hoursStr = record.working_hours > 0 ? `${record.working_hours}h` : '-';
 
                 html += `
                     <tr>
                         <td><strong>${record.date}</strong></td>
-                        <td>${timeStr}</td>
+                        <td>${inTimeStr}</td>
+                        <td>${outTimeStr}</td>
+                        <td style="color:#a855f7; font-weight:600;">${hoursStr}</td>
                         <td><span class="badge ${badgeClass}">${icon} ${statusText}</span></td>
                     </tr>
                 `;
@@ -283,6 +356,44 @@
             document.getElementById('totalCount').innerText = records.length;
             document.getElementById('onTimeCount').innerText = onTime;
             document.getElementById('lateCount').innerText = late;
+            
+            renderHeatmap(records);
+        }
+        
+        function renderHeatmap(records) {
+            // Nhóm dữ liệu theo ngày để lấy số giờ cao nhất của ngày đó (nếu có nhiều record)
+            const hoursByDate = {};
+            records.forEach(r => {
+                if (!hoursByDate[r.date] || r.working_hours > hoursByDate[r.date]) {
+                    hoursByDate[r.date] = r.working_hours;
+                }
+            });
+            
+            // Vẽ heatmap cho 30 ngày gần nhất
+            const heatmapGrid = document.getElementById('heatmapGrid');
+            heatmapGrid.innerHTML = '';
+            
+            const today = new Date();
+            for (let i = 29; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().split('T')[0];
+                
+                const hours = hoursByDate[dateStr] || 0;
+                
+                let level = 0;
+                if (hours > 0 && hours < 2) level = 1;
+                else if (hours >= 2 && hours < 4) level = 2;
+                else if (hours >= 4 && hours < 6) level = 3;
+                else if (hours >= 6) level = 4;
+                
+                const box = document.createElement('div');
+                box.className = 'heat-box';
+                if (level > 0) box.setAttribute('data-level', level);
+                box.setAttribute('data-tooltip', `${dateStr}: ${hours}h`);
+                
+                heatmapGrid.appendChild(box);
+            }
         }
 
         fetchRecords();

@@ -86,9 +86,26 @@ def process_attendance(request: AttendanceRequest, raw_request: Request, db: Ses
 
     # 7. Record Attendance
     status_str = "LATE" if is_late else "ON_TIME"
-    log_attempt(db, payload, status_str, user.id, check_in_time=now, is_late=is_late)
-    logger.info(f"Attendance success for {payload.student_code} in session {session.id}. Late: {is_late}")
-    return {"status": "success", "message": f"Điểm danh thành công ({'Muộn' if is_late else 'Đúng giờ'})"}
+    
+    # Kiểm tra xem hôm nay đã check-in chưa
+    today_start = datetime(now.year, now.month, now.day, tzinfo=vn_tz)
+    existing_log = db.query(AttendanceLog).filter(
+        AttendanceLog.user_id == user.id,
+        AttendanceLog.timestamp >= today_start,
+        AttendanceLog.status.in_(["ON_TIME", "LATE"])
+    ).order_by(AttendanceLog.timestamp.asc()).first()
+
+    if existing_log:
+        # Đã check-in rồi -> Cập nhật check-out
+        existing_log.check_out_time = now
+        db.commit()
+        logger.info(f"Check-out success for {payload.student_code} at {now}")
+        return {"status": "success", "message": "Check-out thành công!"}
+    else:
+        # Chưa check-in -> Tạo mới
+        log_attempt(db, payload, status_str, user.id, check_in_time=now, is_late=is_late)
+        logger.info(f"Check-in success for {payload.student_code}. Late: {is_late}")
+        return {"status": "success", "message": f"Check-in thành công ({'Muộn' if is_late else 'Đúng giờ'})"}
 
 def log_attempt(db: Session, payload: AttendancePayload, status: str, user_id=None, check_in_time=None, is_late=False):
     new_log = AttendanceLog(
@@ -100,6 +117,7 @@ def log_attempt(db: Session, payload: AttendancePayload, status: str, user_id=No
         lon=payload.lon,
         bssid=payload.bssid,
         check_in_time=check_in_time,
+        check_out_time=None,
         is_late=is_late
     )
     db.add(new_log)

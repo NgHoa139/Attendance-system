@@ -140,3 +140,12 @@ def clear_logs(db: Session = Depends(get_db)):
     db.query(AttendanceLog).delete()
     db.commit()
     return {"message": "Đã xóa toàn bộ lịch sử điểm danh rác!"}
+
+@router.get("/auth/migrate_checkout")
+def migrate_checkout(db: Session = Depends(get_db)):
+    try:
+        db.execute("ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS check_out_time TIMESTAMP;")
+        db.commit()
+        return {"message": "Đã thêm cột check_out_time thành công!"}
+    except Exception as e:
+        return {"error": str(e)}

@@ -39,5 +39,6 @@ class AttendanceLog(Base):
     lon = Column(Float, nullable=True)
     bssid = Column(String(50), nullable=True)
     check_in_time = Column(DateTime, nullable=True)
+    check_out_time = Column(DateTime, nullable=True)
     is_late = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
