@@ -60,12 +60,12 @@ async function fetchLogs() {
                     <td><span class="badge ${badgeClass}">${statusText}</span></td>
                 </tr>
                 <tr id="detail-${index}" style="display: none; background: rgba(0,0,0,0.2);">
-                    <td colspan="3" style="padding: 16px 24px; font-size: 14.5px; color: var(--text-sub); line-height: 1.8;">
-                        <div style="display: flex; justify-content: space-between; border-left: 4px solid var(--${badgeClass}); padding-left: 16px; margin: 4px 0;">
-                            <span style="letter-spacing: 0.3px;"><strong>Mã SV:</strong> <span style="color:#fff;">${log.student_code}</span></span>
-                            <span style="letter-spacing: 0.3px;"><strong>Check-in:</strong> <span style="color:#fff;">${inTimeStr}</span></span>
-                            <span style="letter-spacing: 0.3px;"><strong>Check-out:</strong> <span style="color:#fff;">${outTimeStr}</span></span>
-                            <span style="letter-spacing: 0.3px;"><strong>Số giờ làm:</strong> <span style="color:#a855f7; font-weight:600; font-size: 15px;">${log.working_hours > 0 ? log.working_hours + 'h' : '-'}</span></span>
+                    <td colspan="3" style="padding: 20px 24px; font-size: 15px; color: var(--text-sub); line-height: 1.8;">
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; border-left: 4px solid var(--${badgeClass}); padding-left: 20px; margin: 8px 0;">
+                            <span><strong>Mã SV:</strong> <br><span style="color:#fff; font-size: 16px;">${log.student_code}</span></span>
+                            <span><strong>Check-in:</strong> <br><span style="color:#fff; font-size: 16px;">${inTimeStr}</span></span>
+                            <span><strong>Check-out:</strong> <br><span style="color:#fff; font-size: 16px;">${outTimeStr}</span></span>
+                            <span><strong>Số giờ làm:</strong> <br><span style="color:#a855f7; font-weight:700; font-size: 18px;">${log.working_hours > 0 ? log.working_hours + 'h' : '-'}</span></span>
                         </div>
                     </td>
                 </tr>

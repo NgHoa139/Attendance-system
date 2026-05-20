@@ -105,7 +105,9 @@ class LogResponse(BaseModel):
 
 @router.get("/admin/logs", response_model=List[LogResponse])
 def get_all_logs(admin: AdminUser = Depends(get_current_admin), db: Session = Depends(get_db)):
-    logs = db.query(AttendanceLog).order_by(AttendanceLog.timestamp.desc()).limit(100).all()
+    logs = db.query(AttendanceLog).filter(
+        AttendanceLog.status.in_(["ON_TIME", "LATE"])
+    ).order_by(AttendanceLog.timestamp.desc()).limit(100).all()
     
     results = []
     for log in logs:
