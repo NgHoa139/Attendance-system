@@ -41,20 +41,21 @@ loginForm.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (response.ok) {
-            // Lưu thông tin đăng nhập vào localStorage
-            localStorage.setItem('userInfo', JSON.stringify({
-                studentCode: data.student_code,
-                fullName: data.full_name,
-                deviceUuid: data.device_uuid,
-                sessionId: data.session_id
-            }));
-
+            // Lưu thông tin đăng nhập vào localStorage và chuyển hướng
             showMessage('loading', '✅ Đăng nhập thành công! Đang chuyển hướng...');
 
-            // Chuyển hướng đến trang điểm danh sau 800ms
-            setTimeout(() => {
+            if (data.role === 'admin') {
+                localStorage.setItem('adminToken', data.admin_token);
+                window.location.href = 'admin.html';
+            } else {
+                localStorage.setItem('userInfo', JSON.stringify({
+                    studentCode: data.student_code,
+                    fullName: data.full_name,
+                    deviceUuid: data.device_uuid,
+                    sessionId: data.session_id
+                }));
                 window.location.href = 'index.html';
-            }, 800);
+            }
         } else {
             showMessage('error', data.detail || 'Đăng nhập thất bại. Vui lòng thử lại.');
             btnLogin.disabled = false;

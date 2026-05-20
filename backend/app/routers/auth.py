@@ -14,11 +14,15 @@ class LoginRequest(BaseModel):
     password: str
 
 
+from typing import Optional
+
 class LoginResponse(BaseModel):
     student_code: str
     full_name: str
-    device_uuid: str
-    session_id: str
+    device_uuid: Optional[str] = None
+    session_id: Optional[str] = None
+    role: str = "student"
+    admin_token: Optional[str] = None
 
 
 @router.post("/auth/login", response_model=LoginResponse)
@@ -27,8 +31,29 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     Xác thực sinh viên bằng mã sinh viên và mật khẩu.
     Trả về thông tin cần thiết để frontend lưu vào localStorage.
     """
-    # 1. Tìm user theo mã sinh viên (Không phân biệt hoa/thường)
     student_code_upper = request.student_code.strip().upper()
+    
+    # 0. Check if admin login
+    if student_code_upper == "ADMIN":
+        from .admin import create_access_token
+        from datetime import timedelta
+        from ..models import AdminUser
+        
+        admin = db.query(AdminUser).filter(AdminUser.username == "admin").first()
+        if not admin or not bcrypt.checkpw(request.password.encode('utf-8'), admin.hashed_password.encode('utf-8')):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Sai mật khẩu Quản trị viên."
+            )
+        access_token = create_access_token(data={"sub": admin.username}, expires_delta=timedelta(hours=4))
+        return LoginResponse(
+            student_code="admin",
+            full_name="Quản trị viên",
+            role="admin",
+            admin_token=access_token
+        )
+        
+    # 1. Tìm user theo mã sinh viên (Không phân biệt hoa/thường)
     user = db.query(User).filter(User.student_code == student_code_upper).first()
 
     # 2. Kiểm tra user tồn tại và mật khẩu hợp lệ
@@ -49,7 +74,6 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         )
 
     # 3. Lấy session mới nhất đang hoạt động (cho demo)
-    # Trong thực tế, sinh viên sẽ chọn session hoặc có thể fetch sau khi đăng nhập
     from ..models import Session as ClassSession
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc)
