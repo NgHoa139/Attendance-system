@@ -74,9 +74,14 @@ def get_users_stats(admin: AdminUser = Depends(get_current_admin), db: Session =
     results = []
     for u in users:
         logs = db.query(AttendanceLog).filter(AttendanceLog.user_id == u.id).all()
+        successful_logs = [log for log in logs if log.status in ("ON_TIME", "LATE")]
+        
         total_hours = 0.0
-        for log in logs:
-            if log.check_in_time and log.check_out_time:
+        unique_days = set()
+        
+        for log in successful_logs:
+            unique_days.add(log.timestamp.date())
+            if log.check_in_time and getattr(log, 'check_out_time', None):
                 delta = log.check_out_time - log.check_in_time
                 total_hours += round(delta.total_seconds() / 3600.0, 2)
         
@@ -84,7 +89,7 @@ def get_users_stats(admin: AdminUser = Depends(get_current_admin), db: Session =
             student_code=u.student_code,
             full_name=u.full_name,
             total_hours=round(total_hours, 2),
-            total_sessions=len(logs)
+            total_sessions=len(unique_days)
         ))
     return results
 

@@ -1,11 +1,12 @@
+const API_BASE_URL = "https://attendance-system-87zs.onrender.com/api/v1";
 const token = localStorage.getItem('adminToken');
 if (!token) {
-    window.location.href = 'admin_login.html';
+    window.location.href = 'login.html';
 }
 
 function logoutAdmin() {
     localStorage.removeItem('adminToken');
-    window.location.href = 'admin_login.html';
+    window.location.href = 'login.html';
 }
 
 function switchTab(tabId) {
@@ -36,7 +37,7 @@ async function fetchLogs() {
         }
         
         let html = '';
-        data.forEach(log => {
+        data.forEach((log, index) => {
             let inTimeStr = '-';
             if (log.check_in_time) {
                 const d = new Date(log.check_in_time + 'Z');
@@ -53,20 +54,35 @@ async function fetchLogs() {
             let statusText = log.status === 'ON_TIME' ? 'Đúng giờ' : (log.status === 'LATE' ? 'Đi muộn' : 'Thất bại');
             
             html += `
-                <tr>
-                    <td><strong>${log.student_code}</strong></td>
-                    <td>${log.full_name}</td>
+                <tr onclick="toggleDetails('detail-${index}')" style="cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+                    <td><strong>${log.full_name}</strong></td>
                     <td>${log.date}</td>
-                    <td>${inTimeStr}</td>
-                    <td>${outTimeStr}</td>
-                    <td style="color:#a855f7; font-weight:600;">${log.working_hours > 0 ? log.working_hours + 'h' : '-'}</td>
                     <td><span class="badge ${badgeClass}">${statusText}</span></td>
+                </tr>
+                <tr id="detail-${index}" style="display: none; background: rgba(0,0,0,0.2);">
+                    <td colspan="3" style="padding: 16px 24px; font-size: 14.5px; color: var(--text-sub); line-height: 1.8;">
+                        <div style="display: flex; justify-content: space-between; border-left: 4px solid var(--${badgeClass}); padding-left: 16px; margin: 4px 0;">
+                            <span style="letter-spacing: 0.3px;"><strong>Mã SV:</strong> <span style="color:#fff;">${log.student_code}</span></span>
+                            <span style="letter-spacing: 0.3px;"><strong>Check-in:</strong> <span style="color:#fff;">${inTimeStr}</span></span>
+                            <span style="letter-spacing: 0.3px;"><strong>Check-out:</strong> <span style="color:#fff;">${outTimeStr}</span></span>
+                            <span style="letter-spacing: 0.3px;"><strong>Số giờ làm:</strong> <span style="color:#a855f7; font-weight:600; font-size: 15px;">${log.working_hours > 0 ? log.working_hours + 'h' : '-'}</span></span>
+                        </div>
+                    </td>
                 </tr>
             `;
         });
         tbody.innerHTML = html;
     } catch (err) {
         console.error(err);
+    }
+}
+
+window.toggleDetails = function(id) {
+    const el = document.getElementById(id);
+    if (el.style.display === 'none') {
+        el.style.display = 'table-row';
+    } else {
+        el.style.display = 'none';
     }
 }
 
