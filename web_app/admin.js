@@ -86,6 +86,55 @@ window.toggleDetails = function(id) {
     }
 }
 
+window.createUser = async function(event) {
+    event.preventDefault();
+    const studentCode = document.getElementById('newStudentCode').value;
+    const fullName = document.getElementById('newFullName').value;
+    const password = document.getElementById('newPassword').value;
+    const msgEl = document.getElementById('createMessage');
+    const btn = document.getElementById('btnCreateUser');
+    
+    try {
+        btn.disabled = true;
+        btn.innerText = "Đang tạo...";
+        msgEl.style.display = 'none';
+        
+        const res = await fetch(`${API_BASE_URL}/admin/users`, {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                student_code: studentCode,
+                full_name: fullName,
+                password: password
+            })
+        });
+        
+        const data = await res.json();
+        
+        msgEl.style.display = 'block';
+        if (res.ok) {
+            msgEl.style.color = '#22c55e';
+            msgEl.innerText = "✅ Tạo tài khoản sinh viên thành công!";
+            document.getElementById('createUserForm').reset();
+            // Refresh users list in background
+            fetchUsers();
+        } else {
+            msgEl.style.color = '#ef4444';
+            msgEl.innerText = "❌ Lỗi: " + (data.detail || "Không thể tạo tài khoản");
+        }
+    } catch (err) {
+        msgEl.style.display = 'block';
+        msgEl.style.color = '#ef4444';
+        msgEl.innerText = "❌ Lỗi kết nối mạng!";
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Tạo Tài Khoản";
+    }
+}
+
 async function fetchUsers() {
     try {
         const res = await fetch(`${API_BASE_URL}/admin/users`, {

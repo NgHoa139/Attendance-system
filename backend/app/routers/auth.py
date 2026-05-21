@@ -190,5 +190,29 @@ def seed_admin(db: Session = Depends(get_db)):
     else:
         admin.hashed_password = hashed_pwd
         
-    db.commit()
     return {"message": "Đã tạo tài khoản admin thành công (Tên đăng nhập: admin, Mật khẩu: @admin321)"}
+
+class ChangePasswordRequest(BaseModel):
+    student_code: str
+    old_password: str
+    new_password: str
+
+@router.post("/auth/change_password")
+def change_password(request: ChangePasswordRequest, db: Session = Depends(get_db)):
+    student_code_upper = request.student_code.strip().upper()
+    user = db.query(User).filter(User.student_code == student_code_upper).first()
+    
+    if not user or not user.hashed_password:
+        raise HTTPException(status_code=401, detail="Tài khoản không tồn tại hoặc lỗi dữ liệu.")
+        
+    if not bcrypt.checkpw(request.old_password.encode('utf-8'), user.hashed_password.encode('utf-8')):
+        raise HTTPException(status_code=401, detail="Mật khẩu cũ không chính xác.")
+        
+    if len(request.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Mật khẩu mới phải có ít nhất 6 ký tự.")
+        
+    hashed_pwd = bcrypt.hashpw(request.new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    user.hashed_password = hashed_pwd
+    db.commit()
+    
+    return {"message": "Đổi mật khẩu thành công!"}

@@ -171,3 +171,69 @@ window.updateSessionToCurrent = function() {
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
 };
+
+// ========== ĐỔI MẬT KHẨU ==========
+window.openChangePasswordModal = function() {
+    document.getElementById('changePasswordModal').style.display = 'flex';
+    document.getElementById('changePasswordForm').reset();
+    document.getElementById('pwdMsg').style.display = 'none';
+}
+
+window.closeChangePasswordModal = function() {
+    document.getElementById('changePasswordModal').style.display = 'none';
+}
+
+window.changePassword = async function(event) {
+    event.preventDefault();
+    const oldPassword = document.getElementById('oldPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const msgEl = document.getElementById('pwdMsg');
+    const btn = document.getElementById('btnChangePwd');
+    
+    if (newPassword !== confirmPassword) {
+        msgEl.style.display = 'block';
+        msgEl.style.color = '#ef4444';
+        msgEl.innerText = "❌ Mật khẩu xác nhận không khớp!";
+        return;
+    }
+    
+    try {
+        btn.disabled = true;
+        btn.innerText = "Đang xử lý...";
+        msgEl.style.display = 'none';
+        
+        const res = await fetch(`${API_BASE_URL}/auth/change_password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                student_code: USER_INFO.studentCode,
+                old_password: oldPassword,
+                new_password: newPassword
+            })
+        });
+        
+        const data = await res.json();
+        msgEl.style.display = 'block';
+        
+        if (res.ok) {
+            msgEl.style.color = '#22c55e';
+            msgEl.innerText = "✅ " + data.message;
+            setTimeout(() => {
+                closeChangePasswordModal();
+                alert("Đổi mật khẩu thành công. Vui lòng đăng nhập lại!");
+                logout();
+            }, 1500);
+        } else {
+            msgEl.style.color = '#ef4444';
+            msgEl.innerText = "❌ Lỗi: " + (data.detail || "Không thể đổi mật khẩu");
+        }
+    } catch (err) {
+        msgEl.style.display = 'block';
+        msgEl.style.color = '#ef4444';
+        msgEl.innerText = "❌ Lỗi kết nối mạng!";
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Lưu Thay Đổi";
+    }
+}

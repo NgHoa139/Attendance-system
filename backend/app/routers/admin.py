@@ -133,3 +133,36 @@ def get_all_logs(admin: AdminUser = Depends(get_current_admin), db: Session = De
             status=log.status
         ))
     return results
+
+class CreateUserRequest(BaseModel):
+    student_code: str
+    full_name: str
+    password: str
+
+@router.post("/admin/users", status_code=status.HTTP_201_CREATED)
+def create_student(request: CreateUserRequest, admin: AdminUser = Depends(get_current_admin), db: Session = Depends(get_db)):
+    student_code_upper = request.student_code.strip().upper()
+    if not student_code_upper:
+        raise HTTPException(status_code=400, detail="Mã sinh viên không được để trống")
+        
+    if len(request.password) < 6:
+        raise HTTPException(status_code=400, detail="Mật khẩu phải có ít nhất 6 ký tự")
+        
+    existing_user = db.query(User).filter(User.student_code == student_code_upper).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Mã sinh viên đã tồn tại trong hệ thống")
+        
+    hashed_pwd = bcrypt.hashpw(request.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    import uuid
+    # Create a random device_uuid initially
+    new_user = User(
+        student_code=student_code_upper,
+        full_name=request.full_name.strip(),
+        hashed_password=hashed_pwd,
+        device_uuid=str(uuid.uuid4())
+    )
+    
+    db.add(new_user)
+    db.commit()
+    
+    return {"message": "Tạo tài khoản thành công"}
