@@ -1,0 +1,92 @@
+﻿<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+    <meta charset="utf-8">
+    <title>Tài liệu Đặc tả Yêu cầu</title>
+    <style>
+        body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.5; }
+        h1 { font-size: 18pt; text-align: center; color: #1f4e79; }
+        h2 { font-size: 15pt; color: #2e74b5; margin-top: 20px; border-bottom: 1px solid #ccc; }
+        h3 { font-size: 14pt; color: #3b3838; }
+        ul, ol { margin-bottom: 10px; }
+        li { margin-bottom: 5px; }
+        hr { border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+<h1>Tài liệu Đặc tả Yêu cầu Hệ thống (System Requirements Specification - SRS)</h1>
+<p><strong>Tên dự án:</strong> Hệ thống Điểm danh Sinh viên qua Nền tảng Web (FPT University Web-based Attendance System)
+<strong>Phiên bản:</strong> 1.0</p>
+<hr />
+<h2>1. MỤC TIÊU DỰ ÁN</h2>
+<p>Xây dựng một hệ thống điểm danh trực tuyến dành cho sinh viên và quản trị viên, giúp tự động hóa quá trình ghi nhận thời gian làm việc/điểm danh, ngăn chặn các hành vi gian lận (fake GPS, can thiệp payload) thông qua cơ chế mã hóa cấp độ cao, đồng thời cung cấp một bảng điều khiển thống kê trực quan.</p>
+<h2>2. KIẾN TRÚC HỆ THỐNG</h2>
+<p>Dự án được xây dựng theo mô hình Client-Server:
+- <strong>Frontend (Client)</strong>: Ứng dụng Web tĩnh (HTML, CSS, Vanilla JavaScript). Không sử dụng framework để đảm bảo tốc độ tải trang nhanh nhất và triển khai dễ dàng qua Netlify.
+- <strong>Backend (Server)</strong>: FastAPI (Python) - Framework mạnh mẽ, hiệu suất cao. Triển khai trên nền tảng Render.com.
+- <strong>Cơ sở dữ liệu (Database)</strong>: PostgreSQL, được lưu trữ đám mây tại Neon.tech. Sử dụng SQLAlchemy ORM để tương tác với cơ sở dữ liệu.</p>
+<h2>3. CÁC TÍNH NĂNG CHÍNH (Functional Requirements)</h2>
+<h3>3.1 Dành cho Sinh viên (Student Portal)</h3>
+<ol>
+<li><strong>Đăng nhập Hệ thống:</strong></li>
+<li>Đăng nhập bằng Mã sinh viên (Case-insensitive) và Mật khẩu.</li>
+<li><strong>Thực hiện Điểm danh (Check-in / Check-out):</strong></li>
+<li>Tự động thu thập tọa độ GPS và địa chỉ mạng (IP) của thiết bị.</li>
+<li>Lần bấm đầu tiên trong ngày sẽ được ghi nhận là <strong>Check-in</strong>.</li>
+<li>Các lần bấm tiếp theo trong cùng một ngày sẽ cập nhật giờ <strong>Check-out</strong>.</li>
+<li>Tính toán số giờ làm việc dựa trên thời gian Check-in và Check-out thực tế.</li>
+<li><strong>Mã hóa và Bảo mật Dữ liệu (Client-side Security):</strong></li>
+<li>Toàn bộ gói tin (Payload) chứa tọa độ và thông tin điểm danh được mã hóa đối xứng bằng <strong>AES-256</strong>.</li>
+<li>Ký xác thực gói tin bằng thuật toán <strong>HMAC-SHA256</strong> để chống lại các cuộc tấn công chỉnh sửa gói tin (Man-in-the-Middle hoặc can thiệp qua DevTools).</li>
+<li><strong>Theo dõi Lịch sử và Thống kê:</strong></li>
+<li>Xem lịch sử điểm danh từng ngày (Giờ Check-in, Giờ Check-out, Số giờ làm, Trạng thái: Đúng giờ / Đi muộn / Thất bại).</li>
+<li>Biểu đồ <strong>Heatmap (Bản đồ nhiệt)</strong> hiển thị tần suất và số giờ đi làm trong 30 ngày gần nhất (thiết kế tương tự GitHub Contribution Graph).</li>
+<li><strong>Đổi mật khẩu an toàn:</strong></li>
+<li>Sinh viên có thể tự đổi mật khẩu cá nhân. Bắt buộc phải xác thực bằng mật khẩu cũ (Chống IDOR).</li>
+</ol>
+<h3>3.2 Dành cho Quản trị viên (Admin Dashboard)</h3>
+<ol>
+<li><strong>Đăng nhập Quản trị:</strong></li>
+<li>Tài khoản Admin được cấp quyền truy cập riêng biệt và bảo mật bằng <strong>JWT Token</strong> (JSON Web Token).</li>
+<li><strong>Theo dõi Log Điểm danh (Real-time Logs):</strong></li>
+<li>Xem danh sách điểm danh theo thời gian thực.</li>
+<li>Bảng hiển thị giao diện lưới (Grid) tối ưu: Nhìn lướt qua để thấy Ngày và Trạng thái, click vào tên để mở rộng xem chi tiết (Mã SV, Giờ Check-in, Giờ Check-out, Số giờ làm).</li>
+<li>Tự động lọc và ẩn các lần bấm điểm danh thất bại/lỗi.</li>
+<li><strong>Thống kê Nhân viên:</strong></li>
+<li>Tổng hợp tổng số buổi làm việc thành công của từng nhân viên (chỉ đếm những ngày hợp lệ, lọc bỏ các ngày lỗi).</li>
+<li>Tổng hợp tổng số giờ làm việc trong hệ thống.</li>
+<li><strong>Tạo tài khoản Sinh viên:</strong></li>
+<li>Cung cấp form tạo tài khoản mới ngay trên Web.</li>
+<li>Bắt lỗi trùng lặp mã sinh viên.</li>
+<li>Tự động mã hóa mật khẩu trước khi lưu vào Database.</li>
+</ol>
+<hr />
+<h2>4. YÊU CẦU BẢO MẬT VÀ AN TOÀN THÔNG TIN (Non-functional Requirements)</h2>
+<ol>
+<li><strong>Lưu trữ Mật khẩu (Password Storage):</strong></li>
+<li>Tuyệt đối không lưu plaintext. Mọi mật khẩu (của Admin và Sinh viên) đều được mã hóa một chiều bằng thuật toán <strong>Bcrypt</strong> kèm Salt ngẫu nhiên.</li>
+<li><strong>Xác thực và Phân quyền (Authentication &amp; Authorization):</strong></li>
+<li>Các API nhạy cảm của Admin được bảo vệ bởi rào chắn JWT, có thời hạn (Expiration Time) ngắt kết nối tự động.</li>
+<li>Api Đổi mật khẩu tuân thủ nguyên tắc "Xác nhận danh tính" để chống lại các lỗ hổng leo thang đặc quyền.</li>
+<li><strong>Bảo mật cơ sở dữ liệu (SQL Injection Prevention):</strong></li>
+<li>Sử dụng hoàn toàn SQLAlchemy ORM, loại bỏ các câu truy vấn chuỗi thô để chống lại tấn công SQL Injection.</li>
+<li>Dữ liệu đầu vào (Mã SV) được làm sạch (strip) và chuẩn hóa chữ hoa (upper) từ phía Backend.</li>
+</ol>
+<h2>5. CÔNG NGHỆ VÀ THƯ VIỆN ĐƯỢC SỬ DỤNG</h2>
+<ul>
+<li><strong>Frontend:</strong></li>
+<li><code>CryptoJS</code> (Mã hóa AES, HMAC).</li>
+<li>Phông chữ <code>Google Fonts (Outfit)</code>.</li>
+<li><strong>Backend:</strong></li>
+<li><code>FastAPI</code>, <code>Uvicorn</code> (Web server).</li>
+<li><code>SQLAlchemy</code>, <code>psycopg2-binary</code> (Giao tiếp PostgreSQL).</li>
+<li><code>passlib</code>, <code>bcrypt</code> (Băm mật khẩu).</li>
+<li><code>PyJWT</code> (Ký và cấp phát Token).</li>
+<li><strong>Hạ tầng (Infrastructure):</strong></li>
+<li>Render (Backend Hosting).</li>
+<li>Netlify (Frontend CDN).</li>
+<li>Neon.tech (Serverless PostgreSQL).</li>
+</ul>
+<hr />
+<p><em>Tài liệu này đóng vai trò là kim chỉ nam cho các đợt kiểm thử (Testing), mở rộng tính năng (Scaling) và bàn giao dự án.</em></p>
+</body>
+</html>

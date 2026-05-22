@@ -147,7 +147,7 @@ async function fetchUsers() {
         const tbody = document.getElementById('usersTableBody');
         
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 40px; color: var(--text-sub);">Chưa có dữ liệu</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-sub);">Chưa có dữ liệu</td></tr>`;
             return;
         }
         
@@ -159,12 +159,45 @@ async function fetchUsers() {
                     <td>${user.full_name}</td>
                     <td>${user.total_sessions} buổi</td>
                     <td style="color:#22c55e; font-weight:600;">${user.total_hours}h</td>
+                    <td>
+                        <button onclick="deleteUser('${user.student_code}', '${user.full_name}')" style="padding: 6px 12px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); border-radius: 8px; color: #fca5a5; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                            🗑️ Xóa
+                        </button>
+                    </td>
                 </tr>
             `;
         });
         tbody.innerHTML = html;
     } catch (err) {
         console.error(err);
+    }
+}
+
+window.deleteUser = async function(studentCode, fullName) {
+    if (!confirm(`⚠️ CẢNH BÁO: Bạn có chắc chắn muốn xóa sinh viên ${fullName} (${studentCode}) không?\nToàn bộ lịch sử điểm danh của sinh viên này cũng sẽ bị xóa vĩnh viễn!`)) {
+        return;
+    }
+    
+    try {
+        const res = await fetch(`${API_BASE_URL}/admin/users/${studentCode}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.status === 401) { logoutAdmin(); return; }
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            alert("✅ " + data.message);
+            fetchUsers();
+            // Refresh logs too just in case
+            fetchLogs();
+        } else {
+            alert("❌ Lỗi: " + (data.detail || "Không thể xóa"));
+        }
+    } catch (err) {
+        alert("❌ Lỗi kết nối mạng!");
     }
 }
 

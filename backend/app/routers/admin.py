@@ -166,3 +166,20 @@ def create_student(request: CreateUserRequest, admin: AdminUser = Depends(get_cu
     db.commit()
     
     return {"message": "Tạo tài khoản thành công"}
+
+@router.delete("/admin/users/{student_code}")
+def delete_student(student_code: str, admin: AdminUser = Depends(get_current_admin), db: Session = Depends(get_db)):
+    student_code_upper = student_code.strip().upper()
+    user = db.query(User).filter(User.student_code == student_code_upper).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Không tìm thấy sinh viên này")
+        
+    # Xóa toàn bộ logs trước (tránh lỗi foreign key constraint)
+    db.query(AttendanceLog).filter(AttendanceLog.user_id == user.id).delete()
+    
+    # Xóa user
+    db.delete(user)
+    db.commit()
+    
+    return {"message": f"Đã xóa thành công sinh viên {student_code_upper} và toàn bộ dữ liệu liên quan."}
